@@ -1,39 +1,64 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
 	"github.com/larikhide/website-monitor/internal/app/website"
 )
 
-type Router struct {
-	*http.ServeMux
-	ws *website.Websites
+type URL struct {
+	URL        string `json:"url"`
+	AccessTime int64  `json:"access_time"`
 }
 
-func NewRouter(ws *website.Websites) *Router {
-	r := &Router{
-		ServeMux: http.NewServeMux(),
-		ws:       ws,
+type Handlers struct {
+	db *website.Websites
+}
+
+func NewHandlers(db *website.Websites) *Handlers {
+	r := &Handlers{
+		db: db,
 	}
-	r.Handle("/getAccessTime", r.AuthMiddleware(http.HandlerFunc(r.GetAccessTime)))
-	r.Handle("/GetMinAccessURL", r.AuthMiddleware(http.HandlerFunc(r.GetMinAccessURL)))
-	r.Handle("/GetMinAccessURL", r.AuthMiddleware(http.HandlerFunc(r.GetMaxAccessURL)))
 	return r
 }
 
-func (rt *Router) AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			if u, p, ok := r.BasicAuth(); !ok || !(u == "admin" && p == "admin") {
-				http.Error(w, "unautorized", http.StatusUnauthorized)
-				return
-			}
-			// r = r.WithContext(context.WithValue(r.Context(), 1, 0))
-			next.ServeHTTP(w, r)
-		},
-	)
+func (hs *Handlers) HandleAccessTime(ctx context.Context, u URL) (URL, error) {
+
+	bu := website.Website{
+		URL:        u.URL,
+		AccessTime: u.AccessTime,
+	}
+
+	accessTime, err := monitor.GetAccessTime(bu.URL)
+	if err != nil {
+		return URL{}, fmt.Errorf("error when pinging: %w", err)
+	}
+
+	bu.AccessTime = accessTime
+
+	return URL{
+		URL:        bu.URL,
+		AccessTime: bu.AccessTime,
+	}, nil
 }
-func (rt *Router) GetAccessTime(w http.ResponseWriter, r *http.Request)   {}
-func (rt *Router) GetMinAccessURL(w http.ResponseWriter, r *http.Request) {}
-func (rt *Router) GetMaxAccessURL(w http.ResponseWriter, r *http.Request) {}
+
+func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
+	nbu, err := hs.db.GetMinAccessURL(ctx)
+	if err != nil {
+		return URL{}, fmt.Errorf("url not found: %w", err)
+	}
+	return URL{
+		URL: nbu,
+	}, nil
+}
+
+func (hs *Handlers) HandleMaxAccessURL(ctx context.Context) (URL, error) {
+	nbu, err := hs.db.GetMaxAccessURL(ctx)
+	if err != nil {
+		return URL{}, fmt.Errorf("url not found: %w", err)
+	}
+	return URL{
+		URL: nbu,
+	}, nil
+}
