@@ -29,7 +29,7 @@ type Websites struct {
 	wstore WebsiteStorage
 }
 
-func NewUsers(wstore WebsiteStorage) *Websites {
+func NewWebsites(wstore WebsiteStorage) *Websites {
 	return &Websites{
 		wstore: wstore,
 	}
