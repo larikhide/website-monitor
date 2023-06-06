@@ -50,3 +50,11 @@ func (ws *Websites) GetMinAccessURL(ctx context.Context) (string, error) {
 	}
 	return minAccess, nil
 }
+
+func (ws *Websites) GetMaxAccessURL(ctx context.Context) (string, error) {
+	maxAccess, err := ws.wstore.GetMaxAccessURL(ctx)
+	if err != nil {
+		return "", fmt.Errorf("max access time error: %w", err)
+	}
+	return maxAccess, nil
+}
