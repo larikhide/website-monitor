@@ -22,7 +22,18 @@ func NewRouter(ws *website.Websites) *Router {
 	return r
 }
 
-func (rt *Router) AuthMiddleware(next http.Handler) http.Handler          {}
+func (rt *Router) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			if u, p, ok := r.BasicAuth(); !ok || !(u == "admin" && p == "admin") {
+				http.Error(w, "unautorized", http.StatusUnauthorized)
+				return
+			}
+			// r = r.WithContext(context.WithValue(r.Context(), 1, 0))
+			next.ServeHTTP(w, r)
+		},
+	)
+}
 func (rt *Router) GetAccessTime(w http.ResponseWriter, r *http.Request)   {}
 func (rt *Router) GetMinAccessURL(w http.ResponseWriter, r *http.Request) {}
 func (rt *Router) GetMaxAccessURL(w http.ResponseWriter, r *http.Request) {}
