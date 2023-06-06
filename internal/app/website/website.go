@@ -8,7 +8,6 @@ import (
 
 type Website struct {
 	URL        string
-	ShortURL   string
 	Status     bool
 	LastCheck  time.Time
 	AccessTime int64
@@ -20,7 +19,7 @@ type Website struct {
 // 2. Получить имя сайта с минимальным временем доступа.
 // 3. Получить имя сайта с максимальным временем доступа.
 type WebsiteStorage interface {
-	GetAccessTime(ctx context.Context, shortURL string) (int64, error)
+	GetAccessTime(ctx context.Context, URL string) (int64, error)
 	GetMinAccessURL(ctx context.Context) (string, error)
 	GetMaxAccessURL(ctx context.Context) (string, error)
 }
@@ -35,8 +34,8 @@ func NewWebsites(wstore WebsiteStorage) *Websites {
 	}
 }
 
-func (ws *Websites) GetAccessTime(ctx context.Context, shortURL string) (int64, error) {
-	atime, err := ws.wstore.GetAccessTime(ctx, shortURL)
+func (ws *Websites) GetAccessTime(ctx context.Context, URL string) (int64, error) {
+	atime, err := ws.wstore.GetAccessTime(ctx, URL)
 	if err != nil {
 		return 0, fmt.Errorf("get access time error: %w", err)
 	}
