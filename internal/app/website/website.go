@@ -42,3 +42,11 @@ func (ws *Websites) GetAccessTime(ctx context.Context, shortURL string) (int64, 
 	}
 	return atime, nil
 }
+
+func (ws *Websites) GetMinAccessURL(ctx context.Context) (string, error) {
+	minAccess, err := ws.wstore.GetMinAccessURL(ctx)
+	if err != nil {
+		return "", fmt.Errorf("min access time error: %w", err)
+	}
+	return minAccess, nil
+}
