@@ -2,12 +2,13 @@ package website
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
 type Website struct {
 	URL        string
-	ShortName  string
+	ShortURL   string
 	Status     bool
 	LastCheck  time.Time
 	AccessTime int64
@@ -25,11 +26,19 @@ type WebsiteStorage interface {
 }
 
 type Websites struct {
-	webstore WebsiteStorage
+	wstore WebsiteStorage
 }
 
-func NewUsers(webstore WebsiteStorage) *Websites {
+func NewUsers(wstore WebsiteStorage) *Websites {
 	return &Websites{
-		webstore: webstore,
+		wstore: wstore,
 	}
+}
+
+func (ws *Websites) GetAccessTime(ctx context.Context, shortURL string) (int64, error) {
+	atime, err := ws.wstore.GetAccessTime(ctx, shortURL)
+	if err != nil {
+		return 0, fmt.Errorf("get access time error: %w", err)
+	}
+	return atime, nil
 }
