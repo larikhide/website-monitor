@@ -28,7 +28,9 @@ func NewRouterGin(hs *handler.Handlers) *RouterGin {
 	return ret
 }
 
-func (r *RouterGin) GetAccessTime(c *gin.Context)   {}
+func (r *RouterGin) GetAccessTime(c *gin.Context) {
+	r.hs.ReadAccessTime(c.Writer, c.Request)
+}
 func (r *RouterGin) GetMaxAccessURL(c *gin.Context) {}
 func (r *RouterGin) GetMinAccessURL(c *gin.Context) {}
 
