@@ -1,18 +1,21 @@
 package handler
 
 import (
-	"context"
-	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/larikhide/website-monitor/internal/app/monitor"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
-type URL struct {
+type Website struct {
 	URL        string        `json:"url"`
 	AccessTime time.Duration `json:"access_time"`
+}
+
+type Stats struct {
+	SlowestCounter int64 `json:"slowest_counter"`
+	FastestCounter int64 `json:"fastest_counter"`
 }
 
 type Handlers struct {
@@ -21,49 +24,16 @@ type Handlers struct {
 }
 
 func NewHandlers(wdb *website.Websites, sdb *stats.Statistics) *Handlers {
-	r := &Handlers{
+	hs := &Handlers{
 		websiteDB: wdb,
 		statsDB:   sdb,
 	}
-	return r
+	return hs
 }
 
-func (hs *Handlers) HandleAccessTime(ctx context.Context, u URL) (URL, error) {
-
-	bu := website.Website{
-		URL:        u.URL,
-		AccessTime: u.AccessTime,
-	}
-
-	accessTime, err := monitor.AccessTime(bu.URL)
-	if err != nil {
-		return URL{}, fmt.Errorf("error when pinging: %w", err)
-	}
-
-	bu.AccessTime = accessTime
-
-	return URL{
-		URL:        bu.URL,
-		AccessTime: bu.AccessTime,
-	}, nil
-}
-
-func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.websiteDB.ReadMinAccessURL(ctx)
-	if err != nil {
-		return URL{}, fmt.Errorf("url not found: %w", err)
-	}
-	return URL{
-		URL: nbu,
-	}, nil
-}
-
-func (hs *Handlers) HandleMaxAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.websiteDB.ReadMaxAccessURL(ctx)
-	if err != nil {
-		return URL{}, fmt.Errorf("url not found: %w", err)
-	}
-	return URL{
-		URL: nbu,
-	}, nil
-}
+func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request)        {}
+func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request)      {}
+func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request)      {}
+func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request)   {}
+func (hs *Handlers) ReadMinAccessURLStats(w http.ResponseWriter, r *http.Request) {}
+func (hs *Handlers) ReadMaxAccessURLStats(w http.ResponseWriter, r *http.Request) {}
