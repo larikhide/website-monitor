@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/larikhide/website-monitor/internal/app/monitor"
 	"github.com/larikhide/website-monitor/internal/app/website"
 )
 
@@ -30,7 +31,7 @@ func (hs *Handlers) HandleAccessTime(ctx context.Context, u URL) (URL, error) {
 		AccessTime: u.AccessTime,
 	}
 
-	accessTime, err := monitor.GetAccessTime(bu.URL)
+	accessTime, err := monitor.AccessTime(bu.URL)
 	if err != nil {
 		return URL{}, fmt.Errorf("error when pinging: %w", err)
 	}
