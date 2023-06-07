@@ -3,14 +3,15 @@ package handler
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/monitor"
 	"github.com/larikhide/website-monitor/internal/app/website"
 )
 
 type URL struct {
-	URL        string `json:"url"`
-	AccessTime int64  `json:"access_time"`
+	URL        string        `json:"url"`
+	AccessTime time.Duration `json:"access_time"`
 }
 
 type Handlers struct {
