@@ -10,8 +10,6 @@ type Website struct {
 	Status            bool
 	LastCheck         time.Time
 	AccessTime        time.Duration
-	Slowest           bool
-	Fastest           bool
 	AccessTimeCounter int64
 	SlowestCounter    int64
 	FastestCounter    int64
