@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/larikhide/website-monitor/internal/api/handler"
+	"github.com/larikhide/website-monitor/internal/api/router/routergin"
 	"github.com/larikhide/website-monitor/internal/api/server"
 	"github.com/larikhide/website-monitor/internal/app"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
@@ -23,8 +24,8 @@ func main() {
 	a := app.NewApp(websiteStore, statsStore)
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
-	h := handler.NewHandlers(ws, ss)
-	//router := router.NewRouter(h)
+	hs := handler.NewHandlers(ws, ss)
+	router := routergin.NewRouterGin(hs)
 	srv := server.NewServer(":8000", router)
 
 	wg := &sync.WaitGroup{}
