@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/monitor"
-	"github.com/larikhide/website-monitor/internal/app/website"
+	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
 type URL struct {

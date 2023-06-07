@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/larikhide/website-monitor/internal/app/website"
+	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
 type App struct {

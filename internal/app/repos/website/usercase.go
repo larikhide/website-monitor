@@ -29,3 +29,12 @@ func (ws *Websites) ReadMaxAccessURL(ctx context.Context) (string, error) {
 	}
 	return maxAccess, nil
 }
+
+// for admins
+func (ws *Websites) ReadAccessTimeStats(ctx context.Context, url string) (int64, error) {
+	atimeStats, err := ws.wstore.GetAccessTimeStats(ctx, url)
+	if err != nil {
+		return 0, fmt.Errorf("get from db errors: %w", err)
+	}
+	return atimeStats, nil
+}

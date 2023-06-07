@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app"
-	"github.com/larikhide/website-monitor/internal/app/website"
+	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
 var _ app.APIServer = &Server{}
