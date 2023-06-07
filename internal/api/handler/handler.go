@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/monitor"
+	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
@@ -15,12 +16,14 @@ type URL struct {
 }
 
 type Handlers struct {
-	db *website.Websites
+	websiteDB *website.Websites
+	statsDB   *stats.Statistics
 }
 
-func NewHandlers(db *website.Websites) *Handlers {
+func NewHandlers(wdb *website.Websites, sdb *stats.Statistics) *Handlers {
 	r := &Handlers{
-		db: db,
+		websiteDB: wdb,
+		statsDB:   sdb,
 	}
 	return r
 }
@@ -46,7 +49,7 @@ func (hs *Handlers) HandleAccessTime(ctx context.Context, u URL) (URL, error) {
 }
 
 func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.db.ReadMinAccessURL(ctx)
+	nbu, err := hs.websiteDB.ReadMinAccessURL(ctx)
 	if err != nil {
 		return URL{}, fmt.Errorf("url not found: %w", err)
 	}
@@ -56,7 +59,7 @@ func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
 }
 
 func (hs *Handlers) HandleMaxAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.db.ReadMaxAccessURL(ctx)
+	nbu, err := hs.websiteDB.ReadMaxAccessURL(ctx)
 	if err != nil {
 		return URL{}, fmt.Errorf("url not found: %w", err)
 	}

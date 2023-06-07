@@ -22,6 +22,12 @@ type Statistics struct {
 	statstore StatsStorage
 }
 
+func NewStatistics(sstore StatsStorage) *Statistics {
+	return &Statistics{
+		statstore: sstore,
+	}
+}
+
 func (ss *Statistics) ReadMinAccessURLStats(ctx context.Context) (int64, error) {
 	minAccessStats, err := ss.statstore.GetMinAccessURLStats(ctx)
 	if err != nil {
