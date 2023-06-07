@@ -46,7 +46,7 @@ func (hs *Handlers) HandleAccessTime(ctx context.Context, u URL) (URL, error) {
 }
 
 func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.db.GetMinAccessURL(ctx)
+	nbu, err := hs.db.ReadMinAccessURL(ctx)
 	if err != nil {
 		return URL{}, fmt.Errorf("url not found: %w", err)
 	}
@@ -56,7 +56,7 @@ func (hs *Handlers) HandleMinAccessURL(ctx context.Context) (URL, error) {
 }
 
 func (hs *Handlers) HandleMaxAccessURL(ctx context.Context) (URL, error) {
-	nbu, err := hs.db.GetMaxAccessURL(ctx)
+	nbu, err := hs.db.ReadMaxAccessURL(ctx)
 	if err != nil {
 		return URL{}, fmt.Errorf("url not found: %w", err)
 	}
