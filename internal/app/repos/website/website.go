@@ -19,7 +19,7 @@ type Website struct {
 // 3. Получить имя сайта с максимальным временем доступа.
 type WebsiteStorage interface {
 	//staff
-	UpdateAccessTime(ctx context.Context, lastCheck time.Time, accessTime int64) error
+	UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error
 
 	//for users
 	GetAccessTime(ctx context.Context, url string) (time.Duration, error)
@@ -40,7 +40,7 @@ func NewWebsites(wstore WebsiteStorage) *Websites {
 	}
 }
 
-func (ws *Websites) UpdateAccessTime(ctx context.Context, lastCheck time.Time, accessTime int64) error {
+func (ws *Websites) UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error {
 	//TODO
 	return nil
 }
