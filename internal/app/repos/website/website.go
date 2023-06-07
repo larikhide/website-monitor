@@ -11,28 +11,23 @@ type Website struct {
 	LastCheck         time.Time
 	AccessTime        time.Duration
 	AccessTimeCounter int64
-	SlowestCounter    int64
-	FastestCounter    int64
 }
 
+// for users
 // 1. Получить время доступа к определенному сайту.
 // 2. Получить имя сайта с минимальным временем доступа.
 // 3. Получить имя сайта с максимальным временем доступа.
-// 4. Администраторы, которые хотят получать статистику количества запросов пользователей
-// по трем вышеперечисленным эндпойнтам.
 type WebsiteStorage interface {
-	// staff only
+	//staff
 	UpdateAccessTime(ctx context.Context, lastCheck time.Time, accessTime int64) error
 
-	// for users
+	//for users
 	GetAccessTime(ctx context.Context, url string) (time.Duration, error)
 	GetMinAccessURL(ctx context.Context) (string, error)
 	GetMaxAccessURL(ctx context.Context) (string, error)
 
-	// for admins
+	//for admins
 	GetAccessTimeStats(ctx context.Context, url string) (int64, error)
-	GetMinAccessURLStats(ctx context.Context) (string, error)
-	GetMaxAccessURLStats(ctx context.Context) (string, error)
 }
 
 type Websites struct {
@@ -46,5 +41,6 @@ func NewWebsites(wstore WebsiteStorage) *Websites {
 }
 
 func (ws *Websites) UpdateAccessTime(ctx context.Context, lastCheck time.Time, accessTime int64) error {
+	//TODO
 	return nil
 }
