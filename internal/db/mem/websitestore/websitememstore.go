@@ -110,7 +110,7 @@ func (m *MemDB) GetMaxAccessURL(ctx context.Context) (string, error) {
 	default:
 	}
 	url := m.findMaxAccessTimeURL()
-	return url, sql.ErrNoRows
+	return url, nil
 }
 
 func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
