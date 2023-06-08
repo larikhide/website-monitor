@@ -20,7 +20,7 @@ func NewRouterGin(hs *handler.Handlers) *RouterGin {
 	r.GET("/maxping", ret.getMaxAccessURL)
 	r.GET("/minping", ret.getMinAccessURL)
 
-	r.GET("/ping/:url/stats", ret.getAccessTimeStats)
+	r.GET("/ping/stats", ret.getAccessTimeStats)
 	r.GET("/maxping/stats", ret.getMaxAccessURLStats)
 	r.GET("/minping/stats", ret.getMinAccessURLStats)
 
