@@ -16,9 +16,23 @@ type MemDB struct {
 	m map[string]website.Website
 }
 
-func NewWebsites() *MemDB {
+/* func NewWebsites() *MemDB {
 	return &MemDB{
 		m: make(map[string]website.Website),
+	}
+} */
+
+func NewWebsites() *MemDB {
+	websites := make(map[string]website.Website)
+	websites["goog"] = website.Website{
+		URL:               "https://www.google.com",
+		Status:            true,
+		LastCheck:         time.Now(),
+		AccessTime:        time.Second * 2,
+		AccessTimeCounter: 10,
+	}
+	return &MemDB{
+		m: websites,
 	}
 }
 

@@ -34,13 +34,14 @@ func NewHandlers(wdb *website.Websites, sdb *stats.Statistics) *Handlers {
 	return hs
 }
 
+// /ping?url=...
 func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	accesTime, err := hs.websiteDB.ReadAccessTime(r.Context(), url)
+	accessTime, err := hs.websiteDB.ReadAccessTime(r.Context(), url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -53,12 +54,26 @@ func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(
 		Website{
 			URL:        url,
-			AccessTime: accesTime,
+			AccessTime: accessTime,
 		},
 	)
 }
-func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request)      {}
-func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request)      {}
-func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request)   {}
+func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request) {
+	_ = json.NewEncoder(w).Encode(
+		Website{
+			URL:        r.URL.Query().Get("url"),
+			AccessTime: 123,
+		},
+	)
+}
+func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request) {}
+func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request) {
+	_ = json.NewEncoder(w).Encode(
+		Website{
+			URL:        r.URL.Query().Get("url"),
+			AccessTime: 123,
+		},
+	)
+}
 func (hs *Handlers) ReadMinAccessURLStats(w http.ResponseWriter, r *http.Request) {}
 func (hs *Handlers) ReadMaxAccessURLStats(w http.ResponseWriter, r *http.Request) {}
