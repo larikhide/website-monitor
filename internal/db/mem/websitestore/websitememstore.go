@@ -27,7 +27,6 @@ func NewWebsites() *MemDB {
 	websites := make(map[string]website.Website)
 	websites["google"] = website.Website{
 		URL:               "https://www.google.com",
-		Status:            true,
 		LastCheck:         time.Now(),
 		AccessTime:        time.Millisecond * 298,
 		AccessTimeCounter: 10,
@@ -35,7 +34,6 @@ func NewWebsites() *MemDB {
 
 	websites["yandex"] = website.Website{
 		URL:               "https://www.ya.ru",
-		Status:            true,
 		LastCheck:         time.Now(),
 		AccessTime:        time.Millisecond * 132,
 		AccessTimeCounter: 15,
@@ -68,6 +66,33 @@ func (m *MemDB) UpdateAccessTime(ctx context.Context, url string, ut time.Time, 
 
 }
 
+func (m *MemDB) Read(ctx context.Context, url string) (*website.Website, error) {
+	t, ok := m.m[url]
+	if ok {
+		return &t, nil
+	}
+	return &website.Website{}, sql.ErrNoRows
+}
+
+func (m *MemDB) UpdateAccessCounter(ctx context.Context, url string) error {
+	m.Lock()
+	defer m.Unlock()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	counter := m.m[url].AccessTimeCounter
+	counter++
+	m.m[url] = website.Website{
+		AccessTimeCounter: counter,
+	}
+
+	return nil
+}
+
 func (m *MemDB) GetAccessTime(ctx context.Context, url string) (time.Duration, error) {
 	m.Lock()
 	defer m.Unlock()
@@ -79,6 +104,7 @@ func (m *MemDB) GetAccessTime(ctx context.Context, url string) (time.Duration, e
 	}
 	t, ok := m.m[url]
 	if ok {
+		t.AccessTimeCounter++
 		return t.AccessTime, nil
 	}
 	return 0, sql.ErrNoRows

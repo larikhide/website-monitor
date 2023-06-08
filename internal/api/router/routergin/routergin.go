@@ -39,7 +39,7 @@ func (r *RouterGin) getMinAccessURL(c *gin.Context) {
 }
 
 func (r *RouterGin) getAccessTimeStats(c *gin.Context) {
-	r.hs.ReadMaxAccessURL(c.Writer, c.Request)
+	r.hs.ReadAccessTimeStats(c.Writer, c.Request)
 }
 func (r *RouterGin) getMaxAccessURLStats(c *gin.Context) {
 	r.hs.ReadMaxAccessURLStats(c.Writer, c.Request)
