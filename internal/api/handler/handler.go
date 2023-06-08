@@ -34,13 +34,14 @@ func NewHandlers(wdb *website.Websites, sdb *stats.Statistics) *Handlers {
 	return hs
 }
 
+// /ping?url=...
 func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	accesTime, err := hs.websiteDB.ReadAccessTime(r.Context(), url)
+	accessTime, err := hs.websiteDB.ReadAccessTime(r.Context(), url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -53,12 +54,56 @@ func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(
 		Website{
 			URL:        url,
-			AccessTime: accesTime,
+			AccessTime: accessTime,
 		},
 	)
 }
-func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request)      {}
-func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request)      {}
-func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request)   {}
+
+// /minping
+func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request) {
+	url, err := hs.websiteDB.ReadMinAccessURL(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "error when reading", http.StatusInternalServerError)
+		}
+		return
+	}
+	_ = json.NewEncoder(w).Encode(url)
+}
+
+// /maxping
+func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request) {
+	url, err := hs.websiteDB.ReadMaxAccessURL(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "error when reading", http.StatusInternalServerError)
+		}
+		return
+	}
+	_ = json.NewEncoder(w).Encode(url)
+}
+
+func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request) {
+	url := r.URL.Query().Get("url")
+	if url == "" {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	accessTimeStats, err := hs.websiteDB.ReadAccessTimeStats(r.Context(), url)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "error when reading", http.StatusInternalServerError)
+		}
+		return
+	}
+	_ = json.NewEncoder(w).Encode(accessTimeStats)
+}
 func (hs *Handlers) ReadMinAccessURLStats(w http.ResponseWriter, r *http.Request) {}
 func (hs *Handlers) ReadMaxAccessURLStats(w http.ResponseWriter, r *http.Request) {}

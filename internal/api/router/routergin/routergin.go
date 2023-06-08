@@ -16,24 +16,34 @@ func NewRouterGin(hs *handler.Handlers) *RouterGin {
 		hs: hs,
 	}
 
-	r.GET("/ping/:url", ret.GetAccessTime)
-	r.GET("/maxping", ret.GetMaxAccessURL)
-	r.GET("/minping", ret.GetMinAccessURL)
+	r.GET("/ping", ret.getAccessTime)
+	r.GET("/maxping", ret.getMaxAccessURL)
+	r.GET("/minping", ret.getMinAccessURL)
 
-	r.GET("/ping/:url/stats", ret.GetAccessTimeStats)
-	r.GET("/maxping/stats", ret.GetMinAccessURLStats)
-	r.GET("/minping/stats", ret.GetMinAccessURLStats)
+	r.GET("/ping/stats", ret.getAccessTimeStats)
+	r.GET("/maxping/stats", ret.getMaxAccessURLStats)
+	r.GET("/minping/stats", ret.getMinAccessURLStats)
 
 	ret.Engine = r
 	return ret
 }
 
-func (r *RouterGin) GetAccessTime(c *gin.Context) {
+func (r *RouterGin) getAccessTime(c *gin.Context) {
 	r.hs.ReadAccessTime(c.Writer, c.Request)
 }
-func (r *RouterGin) GetMaxAccessURL(c *gin.Context) {}
-func (r *RouterGin) GetMinAccessURL(c *gin.Context) {}
+func (r *RouterGin) getMaxAccessURL(c *gin.Context) {
+	r.hs.ReadMaxAccessURL(c.Writer, c.Request)
+}
+func (r *RouterGin) getMinAccessURL(c *gin.Context) {
+	r.hs.ReadMinAccessURL(c.Writer, c.Request)
+}
 
-func (r *RouterGin) GetAccessTimeStats(c *gin.Context)   {}
-func (r *RouterGin) GetMaxAccessURLStats(c *gin.Context) {}
-func (r *RouterGin) GetMinAccessURLStats(c *gin.Context) {}
+func (r *RouterGin) getAccessTimeStats(c *gin.Context) {
+	r.hs.ReadAccessTimeStats(c.Writer, c.Request)
+}
+func (r *RouterGin) getMaxAccessURLStats(c *gin.Context) {
+	r.hs.ReadMaxAccessURLStats(c.Writer, c.Request)
+}
+func (r *RouterGin) getMinAccessURLStats(c *gin.Context) {
+	r.hs.ReadMinAccessURLStats(c.Writer, c.Request)
+}
