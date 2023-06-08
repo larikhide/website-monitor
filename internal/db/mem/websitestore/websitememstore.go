@@ -3,6 +3,7 @@ package websitestore
 import (
 	"context"
 	"database/sql"
+	"math"
 	"sync"
 	"time"
 
@@ -24,13 +25,22 @@ type MemDB struct {
 
 func NewWebsites() *MemDB {
 	websites := make(map[string]website.Website)
-	websites["goog"] = website.Website{
+	websites["google"] = website.Website{
 		URL:               "https://www.google.com",
 		Status:            true,
 		LastCheck:         time.Now(),
-		AccessTime:        time.Second * 2,
+		AccessTime:        time.Millisecond * 298,
 		AccessTimeCounter: 10,
 	}
+
+	websites["yandex"] = website.Website{
+		URL:               "https://www.ya.ru",
+		Status:            true,
+		LastCheck:         time.Now(),
+		AccessTime:        time.Millisecond * 132,
+		AccessTimeCounter: 15,
+	}
+
 	return &MemDB{
 		m: websites,
 	}
@@ -113,7 +123,7 @@ func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
 	default:
 	}
 	url := m.findMinAccessTimeURL()
-	return url, sql.ErrNoRows
+	return url, nil
 }
 
 // TODO: must lock or not?
@@ -133,10 +143,10 @@ func (m *MemDB) findMaxAccessTimeURL() string {
 // TODO: must lock or not?
 func (m *MemDB) findMinAccessTimeURL() string {
 	var minURL string
-	var minAccessTime time.Duration
+	minAccessTime := time.Duration(math.MaxInt64)
 
 	for _, w := range m.m {
-		if w.AccessTime == 0 || w.AccessTime < minAccessTime {
+		if w.AccessTime < minAccessTime {
 			minURL = w.URL
 			minAccessTime = w.AccessTime
 		}

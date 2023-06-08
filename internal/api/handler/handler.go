@@ -58,13 +58,18 @@ func (hs *Handlers) ReadAccessTime(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 }
+
 func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request) {
-	_ = json.NewEncoder(w).Encode(
-		Website{
-			URL:        r.URL.Query().Get("url"),
-			AccessTime: 123,
-		},
-	)
+	url, err := hs.websiteDB.ReadMinAccessURL(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "error when reading", http.StatusInternalServerError)
+		}
+		return
+	}
+	_ = json.NewEncoder(w).Encode(url)
 }
 func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request) {}
 func (hs *Handlers) ReadAccessTimeStats(w http.ResponseWriter, r *http.Request) {
