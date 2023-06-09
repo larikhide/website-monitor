@@ -2,6 +2,7 @@ package website
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -34,4 +35,20 @@ func NewWebsites(wstore WebsiteRepository) *Websites {
 	return &Websites{
 		wstore: wstore,
 	}
+}
+
+func (ws *Websites) Read(ctx context.Context, url string) (*Website, error) {
+	wsite, err := ws.wstore.Read(ctx, url)
+	if err != nil {
+		return nil, fmt.Errorf("read user error: %w", err)
+	}
+	return wsite, nil
+}
+
+func (ws *Websites) Update(ctx context.Context, website *Website) error {
+	err := ws.wstore.Update(ctx, website)
+	if err != nil {
+		return fmt.Errorf("update website error: %w", err)
+	}
+	return nil
 }
