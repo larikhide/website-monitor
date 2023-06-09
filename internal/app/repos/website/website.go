@@ -20,7 +20,6 @@ type WebsiteRepository interface {
 	Update(ctx context.Context, website *Website) error
 	//Delete(ctx context.Context, url string) error
 
-	//
 	GetWebsitesList(ctx context.Context) ([]Website, error)
 
 	GetPingRequestCount(ctx context.Context, url string) (int, error)
