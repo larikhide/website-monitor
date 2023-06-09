@@ -8,6 +8,7 @@ import (
 
 type Website struct {
 	URL               string
+	Status            bool
 	LastCheck         time.Time
 	AccessTime        time.Duration
 	AccessTimeCounter int64

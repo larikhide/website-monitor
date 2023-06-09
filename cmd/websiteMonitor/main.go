@@ -10,6 +10,7 @@ import (
 	"github.com/larikhide/website-monitor/internal/api/router/routergin"
 	"github.com/larikhide/website-monitor/internal/api/server"
 	"github.com/larikhide/website-monitor/internal/app"
+	"github.com/larikhide/website-monitor/internal/app/monitor"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 	"github.com/larikhide/website-monitor/internal/db/mem/statstore"
@@ -21,7 +22,8 @@ func main() {
 
 	websiteStore := websitestore.NewWebsites()
 	statsStore := statstore.NewStatistics()
-	a := app.NewApp(websiteStore, statsStore)
+	monitor := monitor.NewMonitor()
+	a := app.NewApp(websiteStore, statsStore, *monitor)
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
 	hs := handler.NewHandlers(ws, ss)
