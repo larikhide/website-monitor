@@ -63,8 +63,8 @@ func (uh *UserHandlers) GetPingURLHandler(w http.ResponseWriter, r *http.Request
 }
 
 // /minping
-func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request) {
-	url, err := hs.websiteDB.ReadMinAccessURL(r.Context())
+func (uh *UserHandlers) GetMinPingURLHandler(w http.ResponseWriter, r *http.Request) {
+	stats, err := uh.statsDB.Read(r.Context())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -73,7 +73,10 @@ func (hs *Handlers) ReadMinAccessURL(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	_ = json.NewEncoder(w).Encode(url)
+
+	stats.MaxPingRequestCount++
+	uh.statsDB.Update(r.Context(), stats)
+	_ = json.NewEncoder(w).Encode(stats.MinPingURL)
 }
 
 // /maxping

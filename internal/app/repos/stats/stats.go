@@ -2,6 +2,7 @@ package stats
 
 import (
 	"context"
+	"fmt"
 )
 
 type Stats struct {
@@ -28,4 +29,20 @@ func NewStatistics(sstore StatsRepository) *Statistics {
 	return &Statistics{
 		statstore: sstore,
 	}
+}
+
+func (st *Statistics) Read(ctx context.Context, url string) (*Stats, error) {
+	stat, err := st.statstore.Read(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("read stats error: %w", err)
+	}
+	return stat, nil
+}
+
+func (st *Statistics) Update(ctx context.Context, stats *Stats) error {
+	err := st.statstore.Update(ctx, stats)
+	if err != nil {
+		return fmt.Errorf("update stats error: %w", err)
+	}
+	return nil
 }
