@@ -1,9 +1,10 @@
-package handler
+package handlers
 
 import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
+//TODO: по хорошему описать представления респонсов
 // type Website struct {
 // 	URL        string        `json:"url"`
 // 	AccessTime time.Duration `json:"access_time"`
@@ -26,12 +28,12 @@ type UserHandlers struct {
 	statsDB   *stats.Statistics
 }
 
-func NewHandlers(wdb *website.Websites, sdb *stats.Statistics) *UserHandlers {
-	hs := &UserHandlers{
+func NewUserHandlers(wdb *website.Websites, sdb *stats.Statistics) *UserHandlers {
+	uh := &UserHandlers{
 		websiteDB: wdb,
 		statsDB:   sdb,
 	}
-	return hs
+	return uh
 }
 
 // /ping?url=...
@@ -41,7 +43,7 @@ func (uh *UserHandlers) GetPingURLHandler(w http.ResponseWriter, r *http.Request
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
-	website, err := uh.websiteDB.Read(r.Context(), url)
+	wsite, err := uh.websiteDB.Read(r.Context(), url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -51,20 +53,22 @@ func (uh *UserHandlers) GetPingURLHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	website.PingRequestsCounter++
-	uh.websiteDB.Update(r.Context(), website)
+	wsite.PingRequestsCounter++
+	if err := uh.websiteDB.Update(r.Context(), wsite); err != nil {
+		log.Printf("failed to update ping request counter: %v", err)
+	}
 
 	_ = json.NewEncoder(w).Encode(
 		struct {
 			URL  string        `json:"url"`
 			Ping time.Duration `json:"ping"`
-		}{URL: website.URL, Ping: website.Ping},
+		}{URL: wsite.URL, Ping: wsite.Ping},
 	)
 }
 
 // /minping
 func (uh *UserHandlers) GetMinPingURLHandler(w http.ResponseWriter, r *http.Request) {
-	stats, err := uh.statsDB.Read(r.Context())
+	stts, err := uh.statsDB.Read(r.Context())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -74,14 +78,19 @@ func (uh *UserHandlers) GetMinPingURLHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	stats.MaxPingRequestCount++
-	uh.statsDB.Update(r.Context(), stats)
-	_ = json.NewEncoder(w).Encode(stats.MinPingURL)
+	stts.MinPingRequestCount++
+	if err := uh.statsDB.Update(r.Context(), stts); err != nil {
+		log.Printf("failed to update min ping request counter: %v", err)
+	}
+	_ = json.NewEncoder(w).Encode(struct {
+		URL  string        `json:"url"`
+		Ping time.Duration `json:"ping"`
+	}{URL: stts.MinPingURL, Ping: stts.MinPing})
 }
 
 // /maxping
-func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request) {
-	url, err := hs.websiteDB.ReadMaxAccessURL(r.Context())
+func (uh *UserHandlers) GetMaxPingURLHandler(w http.ResponseWriter, r *http.Request) {
+	stts, err := uh.statsDB.Read(r.Context())
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "not found", http.StatusNotFound)
@@ -90,5 +99,9 @@ func (hs *Handlers) ReadMaxAccessURL(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	_ = json.NewEncoder(w).Encode(url)
+	stts.MaxPingRequestCount++
+	if err := uh.statsDB.Update(r.Context(), stts); err != nil {
+		log.Printf("failed to update max ping request counter: %v", err)
+	}
+	_ = json.NewEncoder(w).Encode(stts.MaxPingURL)
 }

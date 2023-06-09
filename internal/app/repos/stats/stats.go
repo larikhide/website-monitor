@@ -3,11 +3,14 @@ package stats
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 type Stats struct {
 	MinPingURL          string
 	MaxPingURL          string
+	MinPing             time.Duration
+	MaxPing             time.Duration
 	MinPingRequestCount int
 	MaxPingRequestCount int
 }
@@ -31,7 +34,7 @@ func NewStatistics(sstore StatsRepository) *Statistics {
 	}
 }
 
-func (st *Statistics) Read(ctx context.Context, url string) (*Stats, error) {
+func (st *Statistics) Read(ctx context.Context) (*Stats, error) {
 	stat, err := st.statstore.Read(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("read stats error: %w", err)
