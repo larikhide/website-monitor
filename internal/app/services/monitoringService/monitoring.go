@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
@@ -11,6 +12,7 @@ import (
 
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
+	mu          sync.Mutex
 }
 
 func NewMonitoringService(websiteRepo website.WebsiteRepository) *MonitoringService {
@@ -19,31 +21,55 @@ func NewMonitoringService(websiteRepo website.WebsiteRepository) *MonitoringServ
 	}
 }
 
-// TODO: add concurrency and syncronization
 func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 	websites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get websites list: %w", err)
 	}
+
+	wg := new(sync.WaitGroup)
+	maxGorutines := 10
+	errCh := make(chan error, maxGorutines)
+
 	for _, wsite := range websites {
-		website, err := ms.websiteRepo.Read(ctx, wsite.URL)
-		if err != nil {
-			return fmt.Errorf("failed to read website: %w", err)
-		}
+		wg.Add(1)
+		go func(url string) {
+			defer wg.Done()
 
-		pingDuration, err := PingURL(wsite.URL)
-		if err != nil {
-			return fmt.Errorf("failed to ping website %s: %w", wsite.URL, err)
-		}
+			website, err := ms.websiteRepo.Read(ctx, url)
+			if err != nil {
+				errCh <- fmt.Errorf("failed to read website %s: %v", url, err)
+				return
+			}
 
-		//update Website ping info
-		website.Ping = pingDuration
-		website.LastCheck = time.Now()
-		website.PingRequestsCounter++
+			pingDuration, err := PingURL(url)
+			if err != nil {
+				errCh <- fmt.Errorf("failed to ping website %s: %v", url, err)
+				return
+			}
 
-		err = ms.websiteRepo.Update(ctx, website)
+			ms.mu.Lock()
+			defer ms.mu.Unlock()
+
+			// Update Website ping info
+			website.Ping = pingDuration
+			website.LastCheck = time.Now()
+			website.PingRequestsCounter++
+
+			err = ms.websiteRepo.Update(ctx, website)
+			if err != nil {
+				errCh <- fmt.Errorf("failed to update website info %s: %v", url, err)
+				return
+			}
+		}(wsite.URL)
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
 		if err != nil {
-			return fmt.Errorf("failed to update website info %s: %w", wsite.URL, err)
+			return err
 		}
 	}
 
