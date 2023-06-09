@@ -2,16 +2,15 @@ package website
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
 type Website struct {
-	URL               string
-	Status            bool
-	LastCheck         time.Time
-	AccessTime        time.Duration
-	AccessTimeCounter int64
+	URL                 string
+	Status              bool
+	LastCheck           time.Time
+	Ping                time.Duration
+	PingRequestsCounter int64
 }
 
 // for users
@@ -19,18 +18,12 @@ type Website struct {
 // 2. Получить имя сайта с минимальным временем доступа.
 // 3. Получить имя сайта с максимальным временем доступа.
 type WebsiteStorage interface {
-	//staff
+	//Create(ctx context.Context, website Website) (string, error)
 	Read(ctx context.Context, url string) (*Website, error)
-	UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error
-	UpdateAccessCounter(ctx context.Context, url string) error
+	Update(ctx context.Context, website *Website) error
+	//Delete(ctx context.Context, url string) error
 
-	//for users
-	GetAccessTime(ctx context.Context, url string) (time.Duration, error)
-	GetMinAccessURL(ctx context.Context) (string, error)
-	GetMaxAccessURL(ctx context.Context) (string, error)
-
-	//for admins
-	GetAccessTimeStats(ctx context.Context, url string) (int64, error)
+	GetWebsitesList(ctx context.Context) ([]Website, error)
 }
 
 type Websites struct {
@@ -41,32 +34,4 @@ func NewWebsites(wstore WebsiteStorage) *Websites {
 	return &Websites{
 		wstore: wstore,
 	}
-}
-
-// staff
-func (ws *Websites) Read(ctx context.Context, url string) (*Website, error) {
-	website, err := ws.wstore.Read(ctx, url)
-	if err != nil {
-		return &Website{}, fmt.Errorf("get from db errors: %w", err)
-	}
-	return website, err
-}
-
-func (ws *Websites) UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error {
-	//TODO
-	return nil
-}
-
-func (ws *Websites) UpdateAccessCounter(ctx context.Context, url string) (*Website, error) {
-	website, err := ws.wstore.Read(ctx, url)
-	if err != nil {
-		return &Website{}, fmt.Errorf("get from db errors: %w", err)
-	}
-	counter := website.AccessTimeCounter
-	counter++
-	return &Website{URL: website.URL,
-		LastCheck:         website.LastCheck,
-		AccessTime:        website.AccessTime,
-		AccessTimeCounter: counter,
-	}, nil
 }
