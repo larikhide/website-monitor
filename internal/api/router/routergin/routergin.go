@@ -22,6 +22,7 @@ func NewRouterGin(uh *handlers.UserHandlers, ah *handlers.AdminHandlers) *Router
 	r.GET("/minping", ret.getMinPingURL)
 	r.GET("/maxping", ret.getMaxPingURL)
 
+	//TODO: добавить мидлварю с авторизацией
 	r.GET("/ping/stats", ret.getPingRequestCount)
 	r.GET("/minping/stats", ret.getMinPingStats)
 	r.GET("/maxping/stats", ret.getMaxPingStats)
