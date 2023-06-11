@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/larikhide/website-monitor/internal/app"
+	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
+	app "github.com/larikhide/website-monitor/internal/app/starter"
 )
 
 var _ app.APIServer = &Server{}
@@ -14,6 +15,7 @@ var _ app.APIServer = &Server{}
 type Server struct {
 	srv http.Server
 	ws  *website.Websites
+	ss  *stats.Statistics
 }
 
 func NewServer(addr string, h http.Handler) *Server {
@@ -35,7 +37,8 @@ func (s *Server) Stop() {
 	cancel()
 }
 
-func (s *Server) Start(ws *website.Websites) {
+func (s *Server) Start(ws *website.Websites, ss *stats.Statistics) {
+	s.ss = ss
 	s.ws = ws
 	go s.srv.ListenAndServe()
 }
