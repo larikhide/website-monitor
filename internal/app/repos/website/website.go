@@ -8,7 +8,7 @@ import (
 
 type Website struct {
 	URL                 string
-	Status              bool
+	Status              bool //TODO: обработать ошибку, если не доступен
 	LastCheck           time.Time
 	Ping                time.Duration
 	PingRequestsCounter int64
@@ -23,8 +23,8 @@ type WebsiteRepository interface {
 
 	GetWebsitesList(ctx context.Context) ([]Website, error)
 
-	GetPingRequestCount(ctx context.Context, url string) (int, error)
-	IncrementPingRequestCount(ctx context.Context, url string) error
+	//GetPingRequestCount(ctx context.Context, url string) (int, error)
+	//IncrementPingRequestCount(ctx context.Context, url string) error
 }
 
 type Websites struct {
