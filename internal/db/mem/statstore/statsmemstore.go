@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"sync"
+	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 )
@@ -15,9 +16,23 @@ type MemDB struct {
 	s stats.Stats
 }
 
+// TODO: just mock for check. move to _test
+// func NewStatistics() *MemDB {
+// 	return &MemDB{
+// 		s: stats.Stats{},
+// 	}
+// }
+
 func NewStatistics() *MemDB {
 	return &MemDB{
-		s: stats.Stats{},
+		s: stats.Stats{
+			MinPingURL:          "google",
+			MaxPingURL:          "yandex",
+			MinPing:             123 * time.Millisecond,
+			MaxPing:             333 * time.Millisecond,
+			MinPingRequestCount: 54,
+			MaxPingRequestCount: 48,
+		},
 	}
 }
 
