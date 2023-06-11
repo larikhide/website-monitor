@@ -11,8 +11,8 @@ type Stats struct {
 	MaxPingURL          string
 	MinPing             time.Duration
 	MaxPing             time.Duration
-	MinPingRequestCount int
-	MaxPingRequestCount int
+	MinPingRequestCount int64
+	MaxPingRequestCount int64
 }
 
 // 2. Получить имя сайта с минимальным временем доступа.
