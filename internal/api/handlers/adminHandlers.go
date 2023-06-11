@@ -17,6 +17,14 @@ type AdminHandlers struct {
 
 //TODO: по хорошему описать представления респонсов
 
+func NewAdminHandlers(wdb *website.Websites, sdb *stats.Statistics) *AdminHandlers {
+	ah := &AdminHandlers{
+		websiteDB: wdb,
+		statsDB:   sdb,
+	}
+	return ah
+}
+
 func (as *AdminHandlers) GetPingRequestCountHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {

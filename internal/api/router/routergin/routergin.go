@@ -2,47 +2,54 @@ package routergin
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/larikhide/website-monitor/internal/api/handlers"
 )
 
 type RouterGin struct {
 	*gin.Engine
-	hs *handler.Handlers
+	uh *handlers.UserHandlers
+	ah *handlers.AdminHandlers
 }
 
-func NewRouterGin(hs *handler.Handlers) *RouterGin {
+func NewRouterGin(uh *handlers.UserHandlers, ah *handlers.AdminHandlers) *RouterGin {
 	r := gin.Default()
 	ret := &RouterGin{
-		hs: hs,
+		uh: uh,
+		ah: ah,
 	}
 
-	r.GET("/ping", ret.getAccessTime)
-	r.GET("/maxping", ret.getMaxAccessURL)
-	r.GET("/minping", ret.getMinAccessURL)
+	r.GET("/ping", ret.getPing)
+	r.GET("/minping", ret.getMinPingURL)
+	r.GET("/maxping", ret.getMaxPingURL)
 
-	r.GET("/ping/stats", ret.getAccessTimeStats)
-	r.GET("/maxping/stats", ret.getMaxAccessURLStats)
-	r.GET("/minping/stats", ret.getMinAccessURLStats)
+	r.GET("/ping/stats", ret.getPingRequestCount)
+	r.GET("/minping/stats", ret.getMinPingStats)
+	r.GET("/maxping/stats", ret.getMaxPingStats)
 
 	ret.Engine = r
 	return ret
 }
 
-func (r *RouterGin) getAccessTime(c *gin.Context) {
-	r.hs.ReadAccessTime(c.Writer, c.Request)
-}
-func (r *RouterGin) getMaxAccessURL(c *gin.Context) {
-	r.hs.ReadMaxAccessURL(c.Writer, c.Request)
-}
-func (r *RouterGin) getMinAccessURL(c *gin.Context) {
-	r.hs.ReadMinAccessURL(c.Writer, c.Request)
+func (r *RouterGin) getPing(c *gin.Context) {
+	r.uh.GetPingURLHandler(c.Writer, c.Request)
 }
 
-func (r *RouterGin) getAccessTimeStats(c *gin.Context) {
-	r.hs.ReadAccessTimeStats(c.Writer, c.Request)
+func (r *RouterGin) getMinPingURL(c *gin.Context) {
+	r.uh.GetMinPingURLHandler(c.Writer, c.Request)
 }
-func (r *RouterGin) getMaxAccessURLStats(c *gin.Context) {
-	r.hs.ReadMaxAccessURLStats(c.Writer, c.Request)
+
+func (r *RouterGin) getMaxPingURL(c *gin.Context) {
+	r.uh.GetMaxPingURLHandler(c.Writer, c.Request)
 }
-func (r *RouterGin) getMinAccessURLStats(c *gin.Context) {
-	r.hs.ReadMinAccessURLStats(c.Writer, c.Request)
+
+func (r *RouterGin) getPingRequestCount(c *gin.Context) {
+	r.ah.GetPingRequestCountHandler(c.Writer, c.Request)
+}
+
+func (r *RouterGin) getMinPingStats(c *gin.Context) {
+	r.ah.GetMinPingStatsHandler(c.Writer, c.Request)
+}
+
+func (r *RouterGin) getMaxPingStats(c *gin.Context) {
+	r.ah.GetMaxPingStatsHandler(c.Writer, c.Request)
 }
