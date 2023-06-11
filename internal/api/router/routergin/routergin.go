@@ -2,7 +2,6 @@ package routergin
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/larikhide/website-monitor/internal/api/handler"
 )
 
 type RouterGin struct {

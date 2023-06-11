@@ -12,7 +12,7 @@ import (
 
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
-	mu          sync.Mutex
+	mu          *sync.Mutex
 }
 
 func NewMonitoringService(websiteRepo website.WebsiteRepository) *MonitoringService {
