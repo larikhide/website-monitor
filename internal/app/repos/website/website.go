@@ -7,6 +7,7 @@ import (
 )
 
 type Website struct {
+	Name                string
 	URL                 string
 	Status              bool //TODO: обработать ошибку, если не доступен
 	LastCheck           time.Time
@@ -51,4 +52,12 @@ func (ws *Websites) Update(ctx context.Context, website *Website) error {
 		return fmt.Errorf("update website error: %w", err)
 	}
 	return nil
+}
+
+func (ws *Websites) GetWebsitesList(ctx context.Context) ([]Website, error) {
+	list, err := ws.wstore.GetWebsitesList(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get list of websites error: %w", err)
+	}
+	return list, nil
 }

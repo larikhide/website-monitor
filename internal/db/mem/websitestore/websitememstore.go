@@ -27,6 +27,7 @@ type MemDB struct {
 func NewWebsites() *MemDB {
 	websites := make(map[string]website.Website)
 	websites["google"] = website.Website{
+		Name:                "google",
 		URL:                 "https://www.google.com",
 		Status:              true,
 		LastCheck:           time.Now(),
@@ -35,6 +36,7 @@ func NewWebsites() *MemDB {
 	}
 
 	websites["yandex"] = website.Website{
+		Name:                "yandex",
 		URL:                 "https://www.ya.ru",
 		Status:              true,
 		LastCheck:           time.Now(),
@@ -55,7 +57,6 @@ func (m *MemDB) Read(ctx context.Context, url string) (*website.Website, error) 
 	return &website.Website{}, sql.ErrNoRows
 }
 
-// TODO: check for correct funcionality
 func (m *MemDB) Update(ctx context.Context, wsite *website.Website) error {
 	m.Lock()
 	defer m.Unlock()
@@ -65,16 +66,20 @@ func (m *MemDB) Update(ctx context.Context, wsite *website.Website) error {
 		return ctx.Err()
 	default:
 	}
+	_, ok := m.m[wsite.Name]
+	if ok {
+		m.m[wsite.Name] = website.Website{
+			Name:                wsite.Name,
+			URL:                 wsite.URL,
+			Status:              wsite.Status,
+			LastCheck:           wsite.LastCheck,
+			Ping:                wsite.Ping,
+			PingRequestsCounter: wsite.PingRequestsCounter,
+		}
 
-	m.m[wsite.URL] = website.Website{
-		URL:                 wsite.URL,
-		Status:              wsite.Status,
-		LastCheck:           wsite.LastCheck,
-		Ping:                wsite.Ping,
-		PingRequestsCounter: wsite.PingRequestsCounter,
+		return nil
 	}
-
-	return nil
+	return sql.ErrNoRows
 }
 
 func (m *MemDB) GetWebsitesList(ctx context.Context) ([]website.Website, error) {
