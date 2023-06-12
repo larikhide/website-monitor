@@ -12,67 +12,37 @@ import (
 
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
-	mu          *sync.Mutex
+	mu          sync.Mutex
 }
 
 func NewMonitoringService(websiteRepo website.WebsiteRepository) *MonitoringService {
 	return &MonitoringService{
 		websiteRepo: websiteRepo,
+		mu:          sync.Mutex{},
 	}
 }
 
+// TODO: add multithread
 func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
-	websites, err := ms.websiteRepo.GetWebsitesList(ctx)
+	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get websites list: %w", err)
 	}
 
-	wg := new(sync.WaitGroup)
-	maxGorutines := 10
-	errCh := make(chan error, maxGorutines)
-
-	for _, wsite := range websites {
-		wg.Add(1)
-		go func(url string) {
-			defer wg.Done()
-
-			website, err := ms.websiteRepo.Read(ctx, url)
-			if err != nil {
-				errCh <- fmt.Errorf("failed to read website %s: %v", url, err)
-				return
-			}
-
-			pingDuration, err := PingURL(url)
-			if err != nil {
-				errCh <- fmt.Errorf("failed to ping website %s: %v", url, err)
-				return
-			}
-
-			ms.mu.Lock()
-			defer ms.mu.Unlock()
-
-			// Update Website ping info
-			website.Ping = pingDuration
-			website.LastCheck = time.Now()
-			website.PingRequestsCounter++
-
-			err = ms.websiteRepo.Update(ctx, website)
-			if err != nil {
-				errCh <- fmt.Errorf("failed to update website info %s: %v", url, err)
-				return
-			}
-		}(wsite.URL)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	for err := range errCh {
+	for _, site := range sites {
+		ping, err := PingURL(site.URL)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get ping: %w", err)
+		}
+
+		site.Ping = ping
+		site.LastCheck = time.Now()
+
+		err = ms.websiteRepo.Update(ctx, &site)
+		if err != nil {
+			return fmt.Errorf("failed to update site info: %w", err)
 		}
 	}
-
 	return nil
 }
 
