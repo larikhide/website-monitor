@@ -26,6 +26,7 @@ func NewRouterGin(uh *handlers.UserHandlers, ah *handlers.AdminHandlers) *Router
 	r.GET("/ping/stats", ret.getPingRequestCount)
 	r.GET("/minping/stats", ret.getMinPingStats)
 	r.GET("/maxping/stats", ret.getMaxPingStats)
+	r.GET("/allstats", ret.getAllStats)
 
 	ret.Engine = r
 	return ret
@@ -53,4 +54,8 @@ func (r *RouterGin) getMinPingStats(c *gin.Context) {
 
 func (r *RouterGin) getMaxPingStats(c *gin.Context) {
 	r.ah.GetMaxPingStatsHandler(c.Writer, c.Request)
+}
+
+func (r *RouterGin) getAllStats(c *gin.Context) {
+	r.ah.GetAllStats(c.Writer, c.Request)
 }

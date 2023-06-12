@@ -72,3 +72,17 @@ func (as *AdminHandlers) GetMaxPingStatsHandler(w http.ResponseWriter, r *http.R
 
 	_ = json.NewEncoder(w).Encode(stts.MaxPingRequestCount)
 }
+
+func (as *AdminHandlers) GetAllStats(w http.ResponseWriter, r *http.Request) {
+	stts, err := as.statsDB.Read(r.Context())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "error when reading", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(stts)
+}

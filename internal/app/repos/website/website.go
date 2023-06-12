@@ -7,6 +7,7 @@ import (
 )
 
 type Website struct {
+	Name                string
 	URL                 string
 	Status              bool //TODO: обработать ошибку, если не доступен
 	LastCheck           time.Time
