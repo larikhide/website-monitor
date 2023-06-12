@@ -52,3 +52,11 @@ func (ws *Websites) Update(ctx context.Context, website *Website) error {
 	}
 	return nil
 }
+
+func (ws *Websites) GetWebsitesList(ctx context.Context) ([]Website, error) {
+	list, err := ws.wstore.GetWebsitesList(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get list of websites error: %w", err)
+	}
+	return list, nil
+}

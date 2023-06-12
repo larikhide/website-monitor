@@ -43,6 +43,7 @@ func (as *AdminHandlers) GetPingRequestCountHandler(w http.ResponseWriter, r *ht
 	}
 	_ = json.NewEncoder(w).Encode(wsite.PingRequestsCounter)
 }
+
 func (as *AdminHandlers) GetMinPingStatsHandler(w http.ResponseWriter, r *http.Request) {
 	stts, err := as.statsDB.Read(r.Context())
 	if err != nil {
@@ -57,6 +58,7 @@ func (as *AdminHandlers) GetMinPingStatsHandler(w http.ResponseWriter, r *http.R
 	_ = json.NewEncoder(w).Encode(stts.MinPingRequestCount)
 
 }
+
 func (as *AdminHandlers) GetMaxPingStatsHandler(w http.ResponseWriter, r *http.Request) {
 	stts, err := as.statsDB.Read(r.Context())
 	if err != nil {

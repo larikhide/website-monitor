@@ -2,7 +2,6 @@ package statstore
 
 import (
 	"context"
-	"database/sql"
 	"sync"
 	"time"
 
@@ -37,7 +36,9 @@ func NewStatistics() *MemDB {
 }
 
 func (m *MemDB) Read(ctx context.Context) (*stats.Stats, error) {
-	return &stats.Stats{}, sql.ErrNoRows
+	s := m.s
+	// TODO: check for any error?
+	return &s, nil
 }
 
 func (m *MemDB) Update(ctx context.Context, upds *stats.Stats) error {

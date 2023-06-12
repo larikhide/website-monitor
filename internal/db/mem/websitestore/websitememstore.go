@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"math"
-	"sync"
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
@@ -13,7 +12,7 @@ import (
 var _ website.WebsiteRepository = &MemDB{}
 
 type MemDB struct {
-	sync.Mutex
+	// sync.Mutex
 	m map[string]website.Website
 }
 
@@ -57,14 +56,14 @@ func (m *MemDB) Read(ctx context.Context, url string) (*website.Website, error) 
 
 // TODO: check for correct funcionality
 func (m *MemDB) Update(ctx context.Context, wsite *website.Website) error {
-	m.Lock()
-	defer m.Unlock()
+	// m.Lock()
+	// defer m.Unlock()
 
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
+	// select {
+	// case <-ctx.Done():
+	// 	return ctx.Err()
+	// default:
+	// }
 
 	m.m[wsite.URL] = website.Website{
 		URL:                 wsite.URL,
@@ -78,8 +77,8 @@ func (m *MemDB) Update(ctx context.Context, wsite *website.Website) error {
 }
 
 func (m *MemDB) GetWebsitesList(ctx context.Context) ([]website.Website, error) {
-	m.Lock()
-	defer m.Unlock()
+	// m.Lock()
+	// defer m.Unlock()
 
 	select {
 	case <-ctx.Done():
@@ -97,8 +96,8 @@ func (m *MemDB) GetWebsitesList(ctx context.Context) ([]website.Website, error) 
 }
 
 func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
-	m.Lock()
-	defer m.Unlock()
+	// m.Lock()
+	// defer m.Unlock()
 
 	select {
 	case <-ctx.Done():
@@ -110,8 +109,8 @@ func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
 }
 
 func (m *MemDB) GetMaxAccessURL(ctx context.Context) (string, error) {
-	m.Lock()
-	defer m.Unlock()
+	// m.Lock()
+	// defer m.Unlock()
 
 	select {
 	case <-ctx.Done():

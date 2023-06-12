@@ -60,9 +60,10 @@ func (uh *UserHandlers) GetPingURLHandler(w http.ResponseWriter, r *http.Request
 
 	_ = json.NewEncoder(w).Encode(
 		struct {
-			URL  string        `json:"url"`
-			Ping time.Duration `json:"ping"`
-		}{URL: wsite.URL, Ping: wsite.Ping},
+			URL                 string        `json:"url"`
+			Ping                time.Duration `json:"ping"`
+			PingRequestsCounter int64         `json:"ping_count"`
+		}{URL: wsite.URL, Ping: wsite.Ping, PingRequestsCounter: wsite.PingRequestsCounter},
 	)
 }
 
