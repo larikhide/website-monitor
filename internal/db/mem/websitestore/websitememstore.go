@@ -101,30 +101,32 @@ func (m *MemDB) GetWebsitesList(ctx context.Context) ([]website.Website, error) 
 	return wlist, nil
 }
 
-func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
+func (m *MemDB) FindMinPing(ctx context.Context) (*website.Website, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	select {
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return &website.Website{}, ctx.Err()
 	default:
 	}
 	url := m.findMinAccessTimeURL()
-	return url, nil
+	wsite := m.m[url]
+	return &wsite, nil
 }
 
-func (m *MemDB) GetMaxAccessURL(ctx context.Context) (string, error) {
+func (m *MemDB) FindMaxPing(ctx context.Context) (*website.Website, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	select {
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return &website.Website{}, ctx.Err()
 	default:
 	}
 	url := m.findMaxAccessTimeURL()
-	return url, nil
+	wsite := m.m[url]
+	return &wsite, nil
 }
 
 // TODO: must lock or not?
