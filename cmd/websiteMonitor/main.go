@@ -22,7 +22,7 @@ func main() {
 
 	websiteStore := websitestore.NewWebsites()
 	statsStore := statstore.NewStatistics()
-	monitor := monitoring.NewMonitoringService(websiteStore)
+	monitor := monitoring.NewMonitoringService(websiteStore, statsStore)
 	a := app.NewApp(websiteStore, statsStore, *monitor)
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)

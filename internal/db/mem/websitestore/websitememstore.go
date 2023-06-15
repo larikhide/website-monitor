@@ -27,21 +27,15 @@ type MemDB struct {
 func NewWebsites() *MemDB {
 	websites := make(map[string]website.Website)
 	websites["google"] = website.Website{
-		Name:                "google",
-		URL:                 "https://www.google.com",
-		Status:              true,
-		LastCheck:           time.Now(),
-		Ping:                time.Millisecond * 298,
-		PingRequestsCounter: 10,
+		Name:   "google",
+		URL:    "https://www.google.com",
+		Status: true,
 	}
 
 	websites["yandex"] = website.Website{
-		Name:                "yandex",
-		URL:                 "https://www.ya.ru",
-		Status:              true,
-		LastCheck:           time.Now(),
-		Ping:                time.Millisecond * 132,
-		PingRequestsCounter: 15,
+		Name:   "yandex",
+		URL:    "https://www.ya.ru",
+		Status: true,
 	}
 
 	return &MemDB{
@@ -101,56 +95,49 @@ func (m *MemDB) GetWebsitesList(ctx context.Context) ([]website.Website, error) 
 	return wlist, nil
 }
 
-func (m *MemDB) GetMinAccessURL(ctx context.Context) (string, error) {
+func (m *MemDB) FindMinPingWebsite(ctx context.Context) (*website.Website, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	select {
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return &website.Website{}, ctx.Err()
 	default:
 	}
-	url := m.findMinAccessTimeURL()
-	return url, nil
-}
 
-func (m *MemDB) GetMaxAccessURL(ctx context.Context) (string, error) {
-	m.Lock()
-	defer m.Unlock()
-
-	select {
-	case <-ctx.Done():
-		return "", ctx.Err()
-	default:
-	}
-	url := m.findMaxAccessTimeURL()
-	return url, nil
-}
-
-// TODO: must lock or not?
-func (m *MemDB) findMinAccessTimeURL() string {
 	var minURL string
-	minAccessTime := time.Duration(math.MaxInt64)
+	minPing := time.Duration(math.MaxInt64)
 
 	for _, w := range m.m {
-		if w.Ping < minAccessTime {
-			minURL = w.URL
-			minAccessTime = w.Ping
+		if w.Ping < minPing {
+			minURL = w.Name
+			minPing = w.Ping
 		}
 	}
-	return minURL
+
+	wsite := m.m[minURL]
+	return &wsite, nil
 }
 
-// TODO: must lock or not?
-func (m *MemDB) findMaxAccessTimeURL() string {
+func (m *MemDB) FindMaxPingWebsite(ctx context.Context) (*website.Website, error) {
+	m.Lock()
+	defer m.Unlock()
+
+	select {
+	case <-ctx.Done():
+		return &website.Website{}, ctx.Err()
+	default:
+	}
+
 	var maxURL string
-	var maxAccessTime time.Duration
+	var maxPing time.Duration
 
 	for _, w := range m.m {
-		if w.Ping > maxAccessTime {
-			maxURL = w.URL
-			maxAccessTime = w.Ping
+		if w.Ping > maxPing {
+			maxURL = w.Name
+			maxPing = w.Ping
 		}
 	}
-	return maxURL
+	wsite := m.m[maxURL]
+	return &wsite, nil
 }
