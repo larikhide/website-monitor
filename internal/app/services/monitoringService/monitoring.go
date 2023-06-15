@@ -2,6 +2,7 @@ package monitoring
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -34,6 +35,7 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 
 	// pingin all list
 	for _, site := range sites {
+		log.Printf("pinging %v", site.URL)
 		ping, err := PingURL(site.URL)
 		if err != nil {
 			return ctx.Err()

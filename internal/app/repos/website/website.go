@@ -24,11 +24,10 @@ type WebsiteRepository interface {
 
 	GetWebsitesList(ctx context.Context) ([]Website, error)
 
-	//GetPingRequestCount(ctx context.Context, url string) (int, error)
-	//IncrementPingRequestCount(ctx context.Context, url string) error
-
 	FindMinPingWebsite(ctx context.Context) (*Website, error)
 	FindMaxPingWebsite(ctx context.Context) (*Website, error)
+
+	PopulateFromSourceFile(ctx context.Context, filePath string) error
 }
 
 type Websites struct {
