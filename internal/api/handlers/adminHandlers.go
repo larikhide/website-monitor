@@ -41,7 +41,10 @@ func (as *AdminHandlers) GetPingRequestCountHandler(w http.ResponseWriter, r *ht
 		}
 		return
 	}
-	_ = json.NewEncoder(w).Encode(wsite.PingRequestsCounter)
+	_ = json.NewEncoder(w).Encode(struct {
+		URL                 string `json:"url"`
+		PingRequestsCounter int64  `json:"ping_requests"`
+	}{URL: wsite.URL, PingRequestsCounter: wsite.PingRequestsCounter})
 }
 
 func (as *AdminHandlers) GetMinPingStatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,9 +57,9 @@ func (as *AdminHandlers) GetMinPingStatsHandler(w http.ResponseWriter, r *http.R
 		}
 		return
 	}
-
-	_ = json.NewEncoder(w).Encode(stts.MinPingRequestCount)
-
+	_ = json.NewEncoder(w).Encode(struct {
+		MinPingRequests int64 `json:"min_ping_requests"`
+	}{MinPingRequests: stts.MinPingRequestCount})
 }
 
 func (as *AdminHandlers) GetMaxPingStatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +73,9 @@ func (as *AdminHandlers) GetMaxPingStatsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(stts.MaxPingRequestCount)
+	_ = json.NewEncoder(w).Encode(struct {
+		MaxPingRequests int64 `json:"max_ping_requests"`
+	}{MaxPingRequests: stts.MaxPingRequestCount})
 }
 
 func (as *AdminHandlers) GetAllStats(w http.ResponseWriter, r *http.Request) {

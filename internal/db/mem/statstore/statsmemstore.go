@@ -3,7 +3,6 @@ package statstore
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 )
@@ -15,23 +14,9 @@ type MemDB struct {
 	s stats.Stats
 }
 
-// TODO: just mock for check. move to _test
-// func NewStatistics() *MemDB {
-// 	return &MemDB{
-// 		s: stats.Stats{},
-// 	}
-// }
-
 func NewStatistics() *MemDB {
 	return &MemDB{
-		s: stats.Stats{
-			MinPingURL:          "google",
-			MaxPingURL:          "yandex",
-			MinPing:             123 * time.Millisecond,
-			MaxPing:             333 * time.Millisecond,
-			MinPingRequestCount: 54,
-			MaxPingRequestCount: 48,
-		},
+		s: stats.Stats{},
 	}
 }
 
@@ -54,7 +39,7 @@ func (m *MemDB) Update(ctx context.Context, upds *stats.Stats) error {
 	m.s = stats.Stats{
 		MinPingURL:          upds.MinPingURL,
 		MaxPingURL:          upds.MaxPingURL,
-		MinPing:             upds.MaxPing,
+		MinPing:             upds.MinPing,
 		MaxPing:             upds.MaxPing,
 		MinPingRequestCount: upds.MinPingRequestCount,
 		MaxPingRequestCount: upds.MaxPingRequestCount,

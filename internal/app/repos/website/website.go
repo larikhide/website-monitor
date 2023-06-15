@@ -27,8 +27,8 @@ type WebsiteRepository interface {
 	//GetPingRequestCount(ctx context.Context, url string) (int, error)
 	//IncrementPingRequestCount(ctx context.Context, url string) error
 
-	FindMinPing(ctx context.Context) (*Website, error)
-	FindMaxPing(ctx context.Context) (*Website, error)
+	FindMinPingWebsite(ctx context.Context) (*Website, error)
+	FindMaxPingWebsite(ctx context.Context) (*Website, error)
 }
 
 type Websites struct {
@@ -65,16 +65,16 @@ func (ws *Websites) GetWebsitesList(ctx context.Context) ([]Website, error) {
 	return list, nil
 }
 
-func (ws *Websites) FindMinPing(ctx context.Context) (*Website, error) {
-	wsite, err := ws.wstore.FindMinPing(ctx)
+func (ws *Websites) FindMinPingWebsite(ctx context.Context) (*Website, error) {
+	wsite, err := ws.wstore.FindMinPingWebsite(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get min ping website error: %w", err)
 	}
 	return wsite, nil
 }
 
-func (ws *Websites) FindMaxPing(ctx context.Context) (*Website, error) {
-	wsite, err := ws.wstore.FindMaxPing(ctx)
+func (ws *Websites) FindMaxPingWebsite(ctx context.Context) (*Website, error) {
+	wsite, err := ws.wstore.FindMaxPingWebsite(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get max ping website error: %w", err)
 	}

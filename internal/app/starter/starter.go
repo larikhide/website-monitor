@@ -19,7 +19,7 @@ func NewApp(wr website.WebsiteRepository, sr stats.StatsRepository, mn monitorin
 	a := &App{
 		wr: website.NewWebsites(wr),
 		sr: stats.NewStatistics(sr),
-		mn: monitoring.NewMonitoringService(wr),
+		mn: monitoring.NewMonitoringService(wr, sr),
 	}
 	return a
 }

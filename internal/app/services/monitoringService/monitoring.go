@@ -13,14 +13,14 @@ import (
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
 	statsRepo   stats.StatsRepository
-	mu          sync.Mutex
+	mu          *sync.Mutex
 }
 
 func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats.StatsRepository) *MonitoringService {
 	return &MonitoringService{
 		websiteRepo: websiteRepo,
 		statsRepo:   statsRepo,
-		mu:          sync.Mutex{},
+		mu:          &sync.Mutex{},
 	}
 }
 
@@ -31,6 +31,7 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 	if err != nil {
 		return ctx.Err()
 	}
+
 	// pingin all list
 	for _, site := range sites {
 		ping, err := PingURL(site.URL)
@@ -47,13 +48,14 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 			return ctx.Err()
 		}
 	}
+
 	// find min ping webite in updated website repo
-	minPingWebsite, err := ms.websiteRepo.FindMinPing(ctx)
+	minPingWebsite, err := ms.websiteRepo.FindMinPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
 	// find max ping webite in updated website repo
-	maxPingWebsite, err := ms.websiteRepo.FindMaxPing(ctx)
+	maxPingWebsite, err := ms.websiteRepo.FindMaxPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
@@ -62,15 +64,18 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 	if err != nil {
 		return ctx.Err()
 	}
-	// update stats repo
-	err = ms.statsRepo.Update(ctx, &stats.Stats{
+
+	newStats := &stats.Stats{
 		MinPingURL:          minPingWebsite.URL,
 		MaxPingURL:          maxPingWebsite.URL,
 		MinPing:             minPingWebsite.Ping,
 		MaxPing:             maxPingWebsite.Ping,
 		MinPingRequestCount: oldStats.MinPingRequestCount,
 		MaxPingRequestCount: oldStats.MaxPingRequestCount,
-	})
+	}
+
+	// update stats repo
+	err = ms.statsRepo.Update(ctx, newStats)
 	if err != nil {
 		return ctx.Err()
 	}

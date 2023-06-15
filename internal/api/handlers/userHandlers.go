@@ -77,11 +77,11 @@ func (uh *UserHandlers) GetMinPingURLHandler(w http.ResponseWriter, r *http.Requ
 		}
 		return
 	}
-
 	stts.MinPingRequestCount++
 	if err := uh.statsDB.Update(r.Context(), stts); err != nil {
 		log.Printf("failed to update min ping request counter: %v", err)
 	}
+
 	_ = json.NewEncoder(w).Encode(struct {
 		URL  string        `json:"url"`
 		Ping time.Duration `json:"ping"`
@@ -106,5 +106,5 @@ func (uh *UserHandlers) GetMaxPingURLHandler(w http.ResponseWriter, r *http.Requ
 	_ = json.NewEncoder(w).Encode(struct {
 		URL  string        `json:"url"`
 		Ping time.Duration `json:"ping"`
-	}{URL: stts.MinPingURL, Ping: stts.MaxPing})
+	}{URL: stts.MaxPingURL, Ping: stts.MaxPing})
 }
