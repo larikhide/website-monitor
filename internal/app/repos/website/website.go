@@ -7,65 +7,76 @@ import (
 )
 
 type Website struct {
-	URL               string
-	LastCheck         time.Time
-	AccessTime        time.Duration
-	AccessTimeCounter int64
+	Name                string
+	URL                 string
+	Status              bool //TODO: обработать ошибку, если не доступен
+	LastCheck           time.Time
+	Ping                time.Duration
+	PingRequestsCounter int64
 }
 
-// for users
 // 1. Получить время доступа к определенному сайту.
-// 2. Получить имя сайта с минимальным временем доступа.
-// 3. Получить имя сайта с максимальным временем доступа.
-type WebsiteStorage interface {
-	//staff
+type WebsiteRepository interface {
+	//Create(ctx context.Context, website Website) (string, error)
 	Read(ctx context.Context, url string) (*Website, error)
-	UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error
-	UpdateAccessCounter(ctx context.Context, url string) error
+	Update(ctx context.Context, website *Website) error
+	//Delete(ctx context.Context, url string) error
 
-	//for users
-	GetAccessTime(ctx context.Context, url string) (time.Duration, error)
-	GetMinAccessURL(ctx context.Context) (string, error)
-	GetMaxAccessURL(ctx context.Context) (string, error)
+	GetWebsitesList(ctx context.Context) ([]Website, error)
 
-	//for admins
-	GetAccessTimeStats(ctx context.Context, url string) (int64, error)
+	//GetPingRequestCount(ctx context.Context, url string) (int, error)
+	//IncrementPingRequestCount(ctx context.Context, url string) error
+
+	FindMinPingWebsite(ctx context.Context) (*Website, error)
+	FindMaxPingWebsite(ctx context.Context) (*Website, error)
 }
 
 type Websites struct {
-	wstore WebsiteStorage
+	wstore WebsiteRepository
 }
 
-func NewWebsites(wstore WebsiteStorage) *Websites {
+func NewWebsites(wstore WebsiteRepository) *Websites {
 	return &Websites{
 		wstore: wstore,
 	}
 }
 
-// staff
 func (ws *Websites) Read(ctx context.Context, url string) (*Website, error) {
-	website, err := ws.wstore.Read(ctx, url)
+	wsite, err := ws.wstore.Read(ctx, url)
 	if err != nil {
-		return &Website{}, fmt.Errorf("get from db errors: %w", err)
+		return nil, fmt.Errorf("read user error: %w", err)
 	}
-	return website, err
+	return wsite, nil
 }
 
-func (ws *Websites) UpdateAccessTime(ctx context.Context, url string, lastCheck time.Time, accessTime time.Duration) error {
-	//TODO
+func (ws *Websites) Update(ctx context.Context, website *Website) error {
+	err := ws.wstore.Update(ctx, website)
+	if err != nil {
+		return fmt.Errorf("update website error: %w", err)
+	}
 	return nil
 }
 
-func (ws *Websites) UpdateAccessCounter(ctx context.Context, url string) (*Website, error) {
-	website, err := ws.wstore.Read(ctx, url)
+func (ws *Websites) GetWebsitesList(ctx context.Context) ([]Website, error) {
+	list, err := ws.wstore.GetWebsitesList(ctx)
 	if err != nil {
-		return &Website{}, fmt.Errorf("get from db errors: %w", err)
+		return nil, fmt.Errorf("get list of websites error: %w", err)
 	}
-	counter := website.AccessTimeCounter
-	counter++
-	return &Website{URL: website.URL,
-		LastCheck:         website.LastCheck,
-		AccessTime:        website.AccessTime,
-		AccessTimeCounter: counter,
-	}, nil
+	return list, nil
+}
+
+func (ws *Websites) FindMinPingWebsite(ctx context.Context) (*Website, error) {
+	wsite, err := ws.wstore.FindMinPingWebsite(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get min ping website error: %w", err)
+	}
+	return wsite, nil
+}
+
+func (ws *Websites) FindMaxPingWebsite(ctx context.Context) (*Website, error) {
+	wsite, err := ws.wstore.FindMaxPingWebsite(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get max ping website error: %w", err)
+	}
+	return wsite, nil
 }

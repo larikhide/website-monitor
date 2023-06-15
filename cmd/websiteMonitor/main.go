@@ -6,12 +6,13 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/larikhide/website-monitor/internal/api/handler"
+	"github.com/larikhide/website-monitor/internal/api/handlers"
 	"github.com/larikhide/website-monitor/internal/api/router/routergin"
 	"github.com/larikhide/website-monitor/internal/api/server"
-	"github.com/larikhide/website-monitor/internal/app"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
+	monitoring "github.com/larikhide/website-monitor/internal/app/services/monitoringService"
+	app "github.com/larikhide/website-monitor/internal/app/starter"
 	"github.com/larikhide/website-monitor/internal/db/mem/statstore"
 	"github.com/larikhide/website-monitor/internal/db/mem/websitestore"
 )
@@ -21,11 +22,13 @@ func main() {
 
 	websiteStore := websitestore.NewWebsites()
 	statsStore := statstore.NewStatistics()
-	a := app.NewApp(websiteStore, statsStore)
+	monitor := monitoring.NewMonitoringService(websiteStore, statsStore)
+	a := app.NewApp(websiteStore, statsStore, *monitor)
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
-	hs := handler.NewHandlers(ws, ss)
-	router := routergin.NewRouterGin(hs)
+	uh := handlers.NewUserHandlers(ws, ss)
+	ah := handlers.NewAdminHandlers(ws, ss)
+	router := routergin.NewRouterGin(uh, ah)
 	srv := server.NewServer(":8000", router)
 
 	wg := &sync.WaitGroup{}
