@@ -41,8 +41,11 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 
 		ping, err := PingURL(site.URL, pingCtx)
 		if err != nil {
+			site.Status = false
 			log.Printf("error pinging %v: %v", site.URL, err)
 			continue // Skip current URL and go next
+		} else {
+			site.Status = true
 		}
 
 		site.Ping = ping

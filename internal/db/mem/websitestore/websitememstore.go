@@ -27,26 +27,6 @@ func NewWebsites() *MemDB {
 	}
 }
 
-// TODO: just mock for check. remove to _test
-// func NewWebsites() *MemDB {
-// 	websites := make(map[string]website.Website)
-// 	websites["google"] = website.Website{
-// 		Name:   "google",
-// 		URL:    "https://www.google.com",
-// 		Status: true,
-// 	}
-
-// 	websites["yandex"] = website.Website{
-// 		Name:   "yandex",
-// 		URL:    "https://www.ya.ru",
-// 		Status: true,
-// 	}
-
-// 	return &MemDB{
-// 		m: websites,
-// 	}
-// }
-
 func (m *MemDB) Read(ctx context.Context, url string) (*website.Website, error) {
 	t, ok := m.m[url]
 	if ok {
@@ -113,9 +93,11 @@ func (m *MemDB) FindMinPingWebsite(ctx context.Context) (*website.Website, error
 	minPing := time.Duration(math.MaxInt64)
 
 	for _, w := range m.m {
-		if w.Ping < minPing {
-			minURL = w.Name
-			minPing = w.Ping
+		if w.Status {
+			if w.Ping < minPing {
+				minURL = w.Name
+				minPing = w.Ping
+			}
 		}
 	}
 
@@ -161,7 +143,7 @@ func (m *MemDB) PopulateFromSourceFile(ctx context.Context, filePath string) err
 			continue
 		}
 
-		// изменить формат url
+		// add scheme for url
 		url := fmt.Sprintf("https://%s", name)
 
 		wsite := website.Website{
