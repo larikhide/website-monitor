@@ -2,6 +2,7 @@ package monitoring
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -29,14 +30,19 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 	// get list for pinging
 	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
-		return ctx.Err()
+		return err
 	}
 
-	// pingin all list
+	// ping all sites in the list
 	for _, site := range sites {
-		ping, err := PingURL(site.URL)
+
+		pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+
+		ping, err := PingURL(site.URL, pingCtx)
 		if err != nil {
-			return ctx.Err()
+			log.Printf("error pinging %v: %v", site.URL, err)
+			continue // Skip current URL and go next
 		}
 
 		site.Ping = ping
@@ -45,7 +51,7 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 		// update every site into website repo
 		err = ms.websiteRepo.Update(ctx, &site)
 		if err != nil {
-			return ctx.Err()
+			return err
 		}
 	}
 
@@ -79,13 +85,20 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 	if err != nil {
 		return ctx.Err()
 	}
+	log.Printf("ping has been finished")
 	return nil
 }
 
-func PingURL(url string) (time.Duration, error) {
+func PingURL(url string, ctx context.Context) (time.Duration, error) {
 	start := time.Now()
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return 0, err
 	}
