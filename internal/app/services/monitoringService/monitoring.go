@@ -11,6 +11,11 @@ import (
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
+type PingResult struct {
+	wsite website.Website
+	Error error
+}
+
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
 	statsRepo   stats.StatsRepository
@@ -25,45 +30,81 @@ func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats
 	}
 }
 
-// TODO: add multithread
-func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
-	// get list for pinging
+func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
+	// Perform the initial ping immediately
+	err := ms.pingAndUpdate(ctx)
+	if err != nil {
+		log.Printf("initial ping failed: %v", err)
+	}
+
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			err := ms.pingAndUpdate(ctx)
+			if err != nil {
+				log.Printf("ping failed: %v", err)
+			}
+		}
+	}
+}
+
+func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
+	// Get list for pinging
 	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
 		return err
 	}
 
-	// ping all sites in the list
+	//channel to receive ping results
+	pingResults := make(chan PingResult, len(sites))
+
+	// Ping all sites
 	for _, site := range sites {
+		go func(site website.Website) {
+			pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
 
-		pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
+			ping, err := PingURL(site.URL, pingCtx)
+			if err != nil {
+				site.Status = false
+				log.Printf("error pinging %v: %v", site.URL, err)
+			} else {
+				site.Status = true
+			}
 
-		ping, err := PingURL(site.URL, pingCtx)
-		if err != nil {
-			site.Status = false
-			log.Printf("error pinging %v: %v", site.URL, err)
-			continue // Skip current URL and go next
-		} else {
-			site.Status = true
-		}
+			site.Ping = ping
+			site.LastCheck = time.Now()
 
-		site.Ping = ping
-		site.LastCheck = time.Now()
+			// Send the ping result to the channel
+			pingResults <- PingResult{
+				wsite: site,
+				Error: err,
+			}
+		}(site)
+	}
 
-		// update every site into website repo
-		err = ms.websiteRepo.Update(ctx, &site)
+	// Collect ping results from the channel
+	for range sites {
+		result := <-pingResults
+
+		// Update every site into website repo
+		err = ms.websiteRepo.Update(ctx, &result.wsite)
 		if err != nil {
 			return err
 		}
 	}
 
-	// find min ping webite in updated website repo
+	// find min ping website in updated website repo
 	minPingWebsite, err := ms.websiteRepo.FindMinPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
-	// find max ping webite in updated website repo
+	// find max ping website in updated website repo
 	maxPingWebsite, err := ms.websiteRepo.FindMaxPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
@@ -83,12 +124,13 @@ func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
 		MaxPingRequestCount: oldStats.MaxPingRequestCount,
 	}
 
-	// update stats repo
+	// Update stats repo
 	err = ms.statsRepo.Update(ctx, newStats)
 	if err != nil {
 		return ctx.Err()
 	}
-	log.Printf("ping has been finished")
+
+	log.Printf("Ping has been finished")
 	return nil
 }
 

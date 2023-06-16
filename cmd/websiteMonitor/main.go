@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -22,19 +21,22 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	websiteStore := websitestore.NewWebsites()
-
 	filePath := "./websites.txt"
-
 	websiteStore.PopulateFromSourceFile(ctx, filePath)
-	log.Printf("website store : %v", websiteStore)
+
 	statsStore := statstore.NewStatistics()
+
 	monitor := monitoring.NewMonitoringService(websiteStore, statsStore)
+
 	a := app.NewApp(websiteStore, statsStore, *monitor)
+
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
+
 	uh := handlers.NewUserHandlers(ws, ss)
 	ah := handlers.NewAdminHandlers(ws, ss)
 	router := routergin.NewRouterGin(uh, ah)
+
 	srv := server.NewServer(":8000", router)
 
 	wg := &sync.WaitGroup{}

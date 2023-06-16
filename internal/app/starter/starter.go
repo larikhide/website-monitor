@@ -31,7 +31,7 @@ type APIServer interface {
 
 func (a *App) Serve(ctx context.Context, wg *sync.WaitGroup, hs APIServer) {
 	defer wg.Done()
-	a.mn.PingWebsites(ctx)
+	a.mn.StartMonitoring(ctx)
 	hs.Start(a.wr, a.sr)
 	<-ctx.Done()
 	hs.Stop()
