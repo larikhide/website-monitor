@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -12,7 +11,6 @@ import (
 	"github.com/larikhide/website-monitor/internal/api/server"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
-	monitoring "github.com/larikhide/website-monitor/internal/app/services/monitoringService"
 	app "github.com/larikhide/website-monitor/internal/app/starter"
 	"github.com/larikhide/website-monitor/internal/db/mem/statstore"
 	"github.com/larikhide/website-monitor/internal/db/mem/websitestore"
@@ -22,19 +20,20 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	websiteStore := websitestore.NewWebsites()
-
 	filePath := "./websites.txt"
-
 	websiteStore.PopulateFromSourceFile(ctx, filePath)
-	log.Printf("website store : %v", websiteStore)
+
 	statsStore := statstore.NewStatistics()
-	monitor := monitoring.NewMonitoringService(websiteStore, statsStore)
-	a := app.NewApp(websiteStore, statsStore, *monitor)
+
+	a := app.NewApp(websiteStore, statsStore)
+
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
+
 	uh := handlers.NewUserHandlers(ws, ss)
 	ah := handlers.NewAdminHandlers(ws, ss)
 	router := routergin.NewRouterGin(uh, ah)
+
 	srv := server.NewServer(":8000", router)
 
 	wg := &sync.WaitGroup{}

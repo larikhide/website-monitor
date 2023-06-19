@@ -11,6 +11,11 @@ import (
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
 )
 
+type PingResult struct {
+	wsite website.Website
+	Error error
+}
+
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
 	statsRepo   stats.StatsRepository
@@ -26,30 +31,47 @@ func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats
 }
 
 // TODO: add multithread
-func (ms *MonitoringService) PingWebsites(ctx context.Context) error {
+func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
 	// get list for pinging
 	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
 		return err
 	}
 
+	//channel to receive ping results
+	pingResults := make(chan PingResult)
+
 	// ping all sites in the list
 	for _, site := range sites {
+		go func(site website.Website) {
+			pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+			defer cancel()
 
-		pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
+			ping, err := PingURL(site.URL, pingCtx)
+			if err != nil {
+				site.Status = false
+				log.Printf("error pinging %v: %v", site.URL, err)
+			} else {
+				site.Status = true
+			}
 
-		ping, err := PingURL(site.URL, pingCtx)
-		if err != nil {
-			log.Printf("error pinging %v: %v", site.URL, err)
-			continue // Skip current URL and go next
-		}
+			site.Ping = ping
+			site.LastCheck = time.Now()
 
-		site.Ping = ping
-		site.LastCheck = time.Now()
+			// Send the ping result to the channel
+			pingResults <- PingResult{
+				wsite: site,
+				Error: err,
+			}
+		}(site)
+	}
 
-		// update every site into website repo
-		err = ms.websiteRepo.Update(ctx, &site)
+	// Collect ping results from the channel
+	for range sites {
+		result := <-pingResults
+
+		// Update every site into website repo
+		err = ms.websiteRepo.Update(ctx, &result.wsite)
 		if err != nil {
 			return err
 		}

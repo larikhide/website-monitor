@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log"
 	"sync"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
@@ -15,7 +16,7 @@ type App struct {
 	mn *monitoring.MonitoringService
 }
 
-func NewApp(wr website.WebsiteRepository, sr stats.StatsRepository, mn monitoring.MonitoringService) *App {
+func NewApp(wr website.WebsiteRepository, sr stats.StatsRepository) *App {
 	a := &App{
 		wr: website.NewWebsites(wr),
 		sr: stats.NewStatistics(sr),
@@ -31,7 +32,12 @@ type APIServer interface {
 
 func (a *App) Serve(ctx context.Context, wg *sync.WaitGroup, hs APIServer) {
 	defer wg.Done()
-	a.mn.PingWebsites(ctx)
+	go func() {
+		err := a.mn.StartMonitoring(ctx)
+		if err != nil {
+			log.Fatalf("Monitoring service error: %v", err)
+		}
+	}()
 	hs.Start(a.wr, a.sr)
 	<-ctx.Done()
 	hs.Stop()
