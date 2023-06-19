@@ -15,8 +15,6 @@ type AdminHandlers struct {
 	statsDB   *stats.Statistics
 }
 
-//TODO: по хорошему описать представления респонсов
-
 func NewAdminHandlers(wdb *website.Websites, sdb *stats.Statistics) *AdminHandlers {
 	ah := &AdminHandlers{
 		websiteDB: wdb,
