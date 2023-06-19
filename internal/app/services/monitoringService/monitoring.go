@@ -30,31 +30,9 @@ func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats
 	}
 }
 
+// TODO: add multithread
 func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
-	//initial ping
-	err := ms.pingAndUpdate(ctx)
-	if err != nil {
-		log.Printf("initial ping failed: %v", err)
-	}
-
-	ticker := time.NewTicker(time.Minute)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-ticker.C:
-			err := ms.pingAndUpdate(ctx)
-			if err != nil {
-				log.Printf("ping failed: %v", err)
-			}
-		}
-	}
-}
-
-func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
-	// Get list for pinging
+	// get list for pinging
 	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
 		return err
@@ -63,7 +41,7 @@ func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
 	//channel to receive ping results
 	pingResults := make(chan PingResult)
 
-	// Ping all sites
+	// ping all sites in the list
 	for _, site := range sites {
 		go func(site website.Website) {
 			pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -99,12 +77,12 @@ func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
 		}
 	}
 
-	// find min ping website in updated website repo
+	// find min ping webite in updated website repo
 	minPingWebsite, err := ms.websiteRepo.FindMinPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
-	// find max ping website in updated website repo
+	// find max ping webite in updated website repo
 	maxPingWebsite, err := ms.websiteRepo.FindMaxPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
@@ -124,13 +102,12 @@ func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
 		MaxPingRequestCount: oldStats.MaxPingRequestCount,
 	}
 
-	// Update stats repo
+	// update stats repo
 	err = ms.statsRepo.Update(ctx, newStats)
 	if err != nil {
 		return ctx.Err()
 	}
-
-	log.Printf("Ping has been finished")
+	log.Printf("ping has been finished")
 	return nil
 }
 

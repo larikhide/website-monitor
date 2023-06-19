@@ -11,7 +11,6 @@ import (
 	"github.com/larikhide/website-monitor/internal/api/server"
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
 	"github.com/larikhide/website-monitor/internal/app/repos/website"
-	monitoring "github.com/larikhide/website-monitor/internal/app/services/monitoringService"
 	app "github.com/larikhide/website-monitor/internal/app/starter"
 	"github.com/larikhide/website-monitor/internal/db/mem/statstore"
 	"github.com/larikhide/website-monitor/internal/db/mem/websitestore"
@@ -26,9 +25,7 @@ func main() {
 
 	statsStore := statstore.NewStatistics()
 
-	monitor := monitoring.NewMonitoringService(websiteStore, statsStore)
-
-	a := app.NewApp(websiteStore, statsStore, *monitor)
+	a := app.NewApp(websiteStore, statsStore)
 
 	ws := website.NewWebsites(websiteStore)
 	ss := stats.NewStatistics(statsStore)
