@@ -31,7 +31,7 @@ func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats
 }
 
 func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
-	// Perform the initial ping immediately
+	//initial ping
 	err := ms.pingAndUpdate(ctx)
 	if err != nil {
 		log.Printf("initial ping failed: %v", err)
@@ -61,7 +61,7 @@ func (ms *MonitoringService) pingAndUpdate(ctx context.Context) error {
 	}
 
 	//channel to receive ping results
-	pingResults := make(chan PingResult, len(sites))
+	pingResults := make(chan PingResult)
 
 	// Ping all sites
 	for _, site := range sites {
