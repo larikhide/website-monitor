@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
@@ -19,19 +18,47 @@ type PingResult struct {
 type MonitoringService struct {
 	websiteRepo website.WebsiteRepository
 	statsRepo   stats.StatsRepository
-	mu          *sync.Mutex
 }
 
 func NewMonitoringService(websiteRepo website.WebsiteRepository, statsRepo stats.StatsRepository) *MonitoringService {
 	return &MonitoringService{
 		websiteRepo: websiteRepo,
 		statsRepo:   statsRepo,
-		mu:          &sync.Mutex{},
 	}
 }
 
-// TODO: add multithread
-func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
+func (ms *MonitoringService) StartMonitoring(ctx context.Context) {
+	//initial ping
+	err := ms.PingAndUpdate(ctx)
+	if err != nil {
+		log.Printf("initial ping failed: %v", err)
+	}
+
+	// sync channel
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		tick := time.NewTicker(time.Minute)
+		defer tick.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-tick.C:
+				err := ms.PingAndUpdate(ctx)
+				if err != nil {
+					log.Printf("Monitoring service error: %v", err)
+				}
+			}
+		}
+
+	}()
+}
+
+func (ms *MonitoringService) PingAndUpdate(ctx context.Context) error {
 	// get list for pinging
 	sites, err := ms.websiteRepo.GetWebsitesList(ctx)
 	if err != nil {
@@ -43,6 +70,7 @@ func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
 
 	// ping all sites in the list
 	for _, site := range sites {
+
 		go func(site website.Website) {
 			pingCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
@@ -66,28 +94,33 @@ func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
 		}(site)
 	}
 
+	ms.UpdateRepos(ctx, sites, pingResults)
+	log.Printf("ping and update have been finished")
+	return nil
+}
+
+func (ms *MonitoringService) UpdateRepos(ctx context.Context, sites []website.Website, pingResults chan PingResult) error {
 	// Collect ping results from the channel
 	for range sites {
 		result := <-pingResults
 
 		// Update every site into website repo
-		err = ms.websiteRepo.Update(ctx, &result.wsite)
+		err := ms.websiteRepo.Update(ctx, &result.wsite)
 		if err != nil {
 			return err
 		}
 	}
-
 	// find min ping webite in updated website repo
 	minPingWebsite, err := ms.websiteRepo.FindMinPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
+
 	// find max ping webite in updated website repo
 	maxPingWebsite, err := ms.websiteRepo.FindMaxPingWebsite(ctx)
 	if err != nil {
 		return ctx.Err()
 	}
-
 	oldStats, err := ms.statsRepo.Read(ctx)
 	if err != nil {
 		return ctx.Err()
@@ -107,7 +140,6 @@ func (ms *MonitoringService) StartMonitoring(ctx context.Context) error {
 	if err != nil {
 		return ctx.Err()
 	}
-	log.Printf("ping has been finished")
 	return nil
 }
 

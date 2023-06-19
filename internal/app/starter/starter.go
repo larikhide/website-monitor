@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"log"
 	"sync"
 
 	"github.com/larikhide/website-monitor/internal/app/repos/stats"
@@ -32,12 +31,9 @@ type APIServer interface {
 
 func (a *App) Serve(ctx context.Context, wg *sync.WaitGroup, hs APIServer) {
 	defer wg.Done()
-	go func() {
-		err := a.mn.StartMonitoring(ctx)
-		if err != nil {
-			log.Fatalf("Monitoring service error: %v", err)
-		}
-	}()
+
+	a.mn.StartMonitoring(ctx)
+
 	hs.Start(a.wr, a.sr)
 	<-ctx.Done()
 	hs.Stop()
