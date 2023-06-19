@@ -9,13 +9,12 @@ import (
 type Website struct {
 	Name                string
 	URL                 string
-	Status              bool //TODO: обработать ошибку, если не доступен
+	Status              bool
 	LastCheck           time.Time
 	Ping                time.Duration
 	PingRequestsCounter int64
 }
 
-// 1. Получить время доступа к определенному сайту.
 type WebsiteRepository interface {
 	//Create(ctx context.Context, website Website) (string, error)
 	Read(ctx context.Context, url string) (*Website, error)
